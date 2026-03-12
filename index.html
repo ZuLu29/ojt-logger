@@ -17,6 +17,7 @@
     --text: #1a2340;
     --muted: #7a8499;
     --card-shadow: 0 2px 16px rgba(0,48,135,0.10);
+    --login-green: #16a34a;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -249,9 +250,9 @@
   .btn-icon { font-size: 28px; }
 
   .btn-in {
-    background: linear-gradient(135deg, var(--dict-blue), #0055cc);
+    background: linear-gradient(135deg, var(--login-green), #00ff00);
     color: white;
-    box-shadow: 0 6px 24px rgba(0,48,135,0.25);
+    box-shadow: 0 6px 24px rgba(0, 135, 88, 0.25);
   }
 
   .btn-out {
@@ -587,11 +588,11 @@
 
   <div class="btn-group">
     <button class="btn btn-in" onclick="submitForm('login')">
-      <span class="btn-icon">🟦</span>
+   
       LOG IN
     </button>
     <button class="btn btn-out" onclick="submitForm('logout')">
-      <span class="btn-icon">🟥</span>
+      
       LOG OUT
     </button>
   </div>
