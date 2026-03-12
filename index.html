@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>OJT Logger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --card: #13131a;
+    --border: #1e1e2e;
+    --accent-in: #00e5a0;
+    --accent-out: #ff4d6d;
+    --text: #f0f0f5;
+    --muted: #6b6b80;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  /* Background glow */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .header .label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+  }
+
+  .time-display {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .time-display .time {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+
+  .time-display .date {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-in);
+    box-shadow: 0 0 12px var(--accent-in);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .user-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+
+  .user-card .name {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .user-card .email {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .user-card .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  .user-card .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .user-card .info-row span:last-child {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 16px;
+    padding: 20px 16px;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .btn:active::after { opacity: 0.1; }
+
+  .btn-icon {
+    font-size: 24px;
+  }
+
+  .btn-in {
+    background: linear-gradient(135deg, #00e5a0, #00b8ff);
+    color: #0a0a0f;
+    box-shadow: 0 8px 32px rgba(0,229,160,0.25);
+  }
+
+  .btn-in:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,229,160,0.35);
+  }
+
+  .btn-out {
+    background: linear-gradient(135deg, #ff4d6d, #ff8c42);
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(255,77,109,0.25);
+  }
+
+  .btn-out:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(255,77,109,0.35);
+  }
+
+  /* Success overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,15,0.95);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .overlay.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .overlay-icon {
+    font-size: 64px;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+
+  .overlay-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  .overlay-sub {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .overlay-close {
+    margin-top: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px 32px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .overlay-close:hover { background: var(--border); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="label">Digital Transformation Center</div>
+    <h1>OJT<br>Logger</h1>
+  </div>
+
+  <div class="time-display">
+    <div>
+      <div class="time" id="clock">--:--</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="ampm">--</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="date" id="dateDisplay">---</div>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;">
+        <div class="status-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="user-card">
+    <div class="name">Mark Neil Salico Conde</div>
+    <div class="email">markneilconde850@gmail.com</div>
+    <div class="divider"></div>
+    <div class="info-row"><span>Age</span><span>21</span></div>
+    <div class="info-row"><span>Sector</span><span>Students/SUC</span></div>
+    <div class="info-row"><span>Service</span><span>Training</span></div>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn btn-in" onclick="submitForm('login')">
+      <span class="btn-icon">☀️</span>
+      LOG IN
+    </button>
+    <button class="btn btn-out" onclick="submitForm('logout')">
+      <span class="btn-icon">🌙</span>
+      LOG OUT
+    </button>
+  </div>
+</div>
+
+<!-- Success Overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-icon" id="overlayIcon">✅</div>
+  <div class="overlay-title" id="overlayTitle">Logged In!</div>
+  <div class="overlay-sub" id="overlaySub">Form submitted successfully</div>
+  <button class="overlay-close" onclick="closeOverlay()">Done</button>
+</div>
+
+<script>
+  // Live clock
+  function updateClock() {
+    const now = new Date();
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('clock').textContent = `${h}:${m}`;
+    document.getElementById('ampm').textContent = ampm;
+
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('dateDisplay').textContent =
+      `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Form submission
+  function submitForm(type) {
+    // Google Form entry IDs from inspection
+    const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfDunh8qdHgI2C_-qr2e51A9LryAO9e1S1FgnN_vGYXBAKWLg/formResponse';
+
+    const params = new URLSearchParams({
+      'entry.429500118': 'markneilconde850@gmail.com',
+      'entry.1122302792': 'Conde',
+      'entry.41275576': 'Mark Neil',
+      'entry.1385230754': 'Salico',
+      'entry.689205534': '21',
+      'entry.776605123': 'Students/SUC',
+      'entry.2053633731': 'Training',
+      'entry.143518111': 'I agree',
+      'entry.1598388628': 'No',
+      'entry.142726833': 'Man',
+    });
+
+    // Open in new tab (Google Forms handles submission)
+    const fullUrl = formUrl + '?' + params.toString();
+    window.open(fullUrl, '_blank');
+
+    // Show success overlay
+    const isLogin = type === 'login';
+    document.getElementById('overlayIcon').textContent = isLogin ? '☀️' : '🌙';
+    document.getElementById('overlayTitle').textContent = isLogin ? 'Logged In!' : 'Logged Out!';
+    document.getElementById('overlaySub').textContent =
+      `Form submitted • ${document.getElementById('clock').textContent} ${document.getElementById('ampm').textContent}`;
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function closeOverlay() {
+    document.getElementById('overlay').classList.remove('show');
+  }
+</script>
+
+</body>
+</html>
